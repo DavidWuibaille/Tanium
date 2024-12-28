@@ -7,3 +7,11 @@ from all machines with CPU Consumption > 80%
 
 
 https://help.tanium.com/bundle/ug_console_cloud/page/platform_user/example_questions.html?workflow=tco_mmap
+
+
+
+Get Computer Name and Last Logged In User and Running Processes from all machines
+Get Computer Name and Last Logged In User and Running Applications from all machines
+Get Computer Name and Last Logged In User and Running Service from all machines
+Get Computer Name and Last Logged In User and Stopped Service from all machines
+Get Computer Name and Last Logged In User and Installed Applications from all machines
