@@ -50,13 +50,9 @@ try {
 
 
 Set-OSDProgressDisplay -Message "Apps chrome Download"
-# Define the URL and the destination path
-$url = "https://nas.wuibaille.fr/partageMyFile789456123/Tanium/GoogleChromeStandaloneEnterprise64.msi"
+Log-Message "Apps chrome Download from $url"
+$url = "https://nas.wuibaille.fr/DML/Chrome/googlechromestandaloneenterprise64.msi"
 $destination = "C:\Windows\Temp\GoogleChromeStandaloneEnterprise64.msi"
-
-# Log the start of the process
-Log-Message "Starting download from $url"
-
 # Download the file
 try {
     Invoke-WebRequest -Uri $url -OutFile $destination
@@ -65,11 +61,8 @@ try {
     Log-Message "Download failed: $_"
     exit 1
 }
-
 Set-OSDProgressDisplay -Message "Apps chrome Install"
-Log-Message "Starting installation of $destination"
-
-# Install the MSI package
+Log-Message "Apps chrome Install $destination"
 try {
     Start-Process "msiexec.exe" -ArgumentList "/i $destination /quiet /norestart" -Wait -NoNewWindow
     Log-Message "Installation successful"
