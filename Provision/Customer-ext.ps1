@@ -52,9 +52,7 @@ TaniumDownloadAndInstallMsi -Url $url -Destination $destination -AppName $appNam
 
 Log-Message "Script ended."
 
-
-$webserviceUrl = "http://epm2024.monlab.lan:12176/GetName"
-$computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl $webserviceUrl
+$computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://epm2024.monlab.lan:12176/GetName"
 $computerName = $computerInfo.Computername
 $postype = $computerInfo.Postype
 $setkeyboard = $computerInfo.SetKeyboard
