@@ -1,35 +1,14 @@
-$webserviceUrl = "http://epm2024.monlab.lan:12176/GetName"
-
-# Function to log messages
-function Log-Message {
-    param (
-        [string]$message
-    )
-    # Only remove colons from the timestamp, not from file paths or URLs
-    $timestamp = Get-Date -Format "yyyy-MM-dd HHmmss"  # Correct timestamp format without colons
-    $logMessage = "$timestamp - $message"
-    Add-Content -Path $logFilePath -Value $logMessage
-}
-
-if (Test-Path -Path "C:\") {  
-    if (-not (Test-Path -Path "C:\Systools"))        { New-Item -Path "C:\Systools" -ItemType Directory } 
-    if (-not (Test-Path -Path "C:\Systools\OptLog")) { New-Item -Path "C:\Systools\OptLog" -ItemType Directory }
-}
-$logFilePath = "C:\Systools\OptLog\provision.log"
-Log-Message "Customer-PE Script started."
 
 Import-Module C:\_T\TaniumOSD
 Import-Module C:\_T\TaniumClient
-$setkeyboard = Get-OSDVariable -Name "setkeyboard"
-Log-Message "setkeyboard $setkeyboard"
 
-
-# Obtain all network interfaces with their MAC addresses
-$macAddresses = Get-WmiObject Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -eq 2 } | Select-Object -ExpandProperty MACAddress
-$macAddresses = $macAddresses -replace "[:\-]", ""
-Log-Message "MAC Addresses: $macAddresses"
-$urlws = $webserviceUrl+"?macaddress=$macAddresses"
-Log-Message "Webservice URL: $urlws"
+$computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://epm2024.monlab.lan:12176/GetName"
+$computerName = $computerInfo.Computername
+$postype      = $computerInfo.Postype
+$setkeyboard  = $computerInfo.SetKeyboard
+Log-Message "APIpe : $computerName"  
+Log-Message "APIpe : $postype"   
+Log-Message "APIpe : $setkeyboard" 
 
 # Log available drives
 $availableDrives = Get-PSDrive -PSProvider FileSystem | Select-Object -ExpandProperty Root
@@ -41,9 +20,6 @@ $unattendPaths = @(
     "_T\unattend.xml",
     "Windows\Panther\Unattend\unattend.xml"
 )
-
-
-
 
 foreach ($drive in $availableDrives) {
     foreach ($relativePath in $unattendPaths) {
@@ -63,23 +39,15 @@ foreach ($drive in $availableDrives) {
                 $ns = New-Object System.Xml.XmlNamespaceManager($xmlDoc.NameTable)
                 $ns.AddNamespace("ns", "urn:schemas-microsoft-com:unattend")
 
-                # Call the webservice
-                $response = Invoke-RestMethod -Uri $urlws
-                if ($response.Computername) {
-                    Log-Message "Response received from server for MAC $macAddresses - Computername = $($response.Computername), postype = $($response.postype)"
-
-                    # Attempt to find and modify the ComputerName element
-                    $computerNameNode = $xmlDoc.SelectSingleNode("//ns:settings[@pass='specialize']/ns:component/ns:ComputerName", $ns)
-                    if ($computerNameNode -ne $null) {
-                        $computerNameNode.InnerText = $response.Computername
-                        # Save the modified XML file
-                        $xmlDoc.Save($xmlFilePath)
-                        Log-Message "The ComputerName in unattend.xml has been updated to $($response.Computername)"
-                    } else {
-                        Log-Message "No ComputerName element found in XML."
-                    }
+                # Attempt to find and modify the ComputerName element
+                $computerNameNode = $xmlDoc.SelectSingleNode("//ns:settings[@pass='specialize']/ns:component/ns:ComputerName", $ns)
+                if ($computerNameNode -ne $null) {
+                    $computerNameNode.InnerText = $computerName
+                    # Save the modified XML file
+                    $xmlDoc.Save($xmlFilePath)
+                    Log-Message "The ComputerName in unattend.xml has been updated to $($response.Computername)"
                 } else {
-                    Log-Message "No valid computer found for MAC $macAddresses"
+                    Log-Message "No ComputerName element found in XML."
                 }
             } catch {
                 Log-Message "Error processing unattend.xml at $xmlFilePath - $_"
