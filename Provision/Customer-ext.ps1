@@ -2,6 +2,7 @@
 Import-Module C:\_T\TaniumOSD
 Import-Module C:\_T\TaniumClient
 
+Set-OSDProgressDisplay -Message "Applications"
 $url = "https://nas.wuibaille.fr/DML/Chrome/googlechromestandaloneenterprise64.msi"
 $destination = "C:\Windows\Temp\GoogleChromeStandaloneEnterprise64.msi"
 $appName = "Google Chrome"
@@ -12,7 +13,7 @@ $destination = "C:\Windows\Temp\7z1900-x64.msi"
 $appName = "7z"
 TaniumDownloadAndInstallMsi -Url $url -Destination $destination -AppName $appName
 
-
+Set-OSDProgressDisplay -Message "Web Service"
 $computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://epm2024.monlab.lan:12176/GetName"
 $computerName = $computerInfo.Computername
 $postype      = $computerInfo.Postype
@@ -24,5 +25,8 @@ Log-Message "API : $setkeyboard"
 # Set the environment variable POSTYPE persistently for the System
 [Environment]::SetEnvironmentVariable("POSTYPE",  $postype, [EnvironmentVariableTarget]::Machine)
 
+Set-OSDProgressDisplay -Message "Drivers"
 InstallDrivers
+
+Set-OSDProgressDisplay -Message "Domain"
 SetDns -DnsServers @("192.168.0.240", "192.168.0.3")
