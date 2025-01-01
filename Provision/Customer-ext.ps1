@@ -1,18 +1,10 @@
-$webserviceUrl = "http://epm2024.monlab.lan:12176/GetName"
-
-# Function to log messages
-function Log-Message {
-    param (
-        [string]$message
-    )
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $logMessage = "$timestamp - $message"
-    Add-Content -Path $logFilePath -Value $logMessage
-}
 
 
+. ([scriptblock]::Create((Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DavidWuibaille/Repository/main/Function/tanium.ps1" -UseBasicParsing).Content))
+Import-Module C:\_T\TaniumOSD
+Import-Module C:\_T\TaniumClient
 
-
+# ----------------------- create log file
 if (Test-Path -Path "C:\") {  
     if (-not (Test-Path -Path "C:\Systools"))        { New-Item -Path "C:\Systools" -ItemType Directory } 
     if (-not (Test-Path -Path "C:\Systools\OptLog")) { New-Item -Path "C:\Systools\OptLog" -ItemType Directory }
@@ -20,11 +12,8 @@ if (Test-Path -Path "C:\") {
 $logFilePath = "C:\Systools\OptLog\provision.log"
 Log-Message "Customer Script started."
 
-Import-Module C:\_T\TaniumOSD
-Import-Module C:\_T\TaniumClient
-$setkeyboard = Get-OSDVariable -Name "setkeyboard"
-Log-Message "setkeyboard $setkeyboard"
-
+# -----------------------get API
+$webserviceUrl = "http://epm2024.monlab.lan:12176/GetName"
 # Obtain all network interfaces with their MAC addresses
 $macAddresses = Get-WmiObject Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -eq 2 } | Select-Object -ExpandProperty MACAddress
 $macAddresses = $macAddresses.replace(":","")
@@ -32,7 +21,6 @@ $macAddresses = $macAddresses.replace("-","")
 Log-Message "MAC Addresses: $macAddresses"
 $urlws = $webserviceUrl + "?macaddress=$macAddresses"
 Log-Message $urlws 
-
 $EnvValue= ""
 try {
 	$response = Invoke-RestMethod -Uri $urlws
@@ -47,51 +35,29 @@ try {
 	Log-Message "Error contacting webservice for MAC $macAddresses : $_"
 }
 
+$setkeyboard = Get-OSDVariable -Name "setkeyboard"
+Log-Message "setkeyboard $setkeyboard"
+
+# Set the environment variable POSTYPE persistently for the System
+[Environment]::SetEnvironmentVariable("POSTYPE", $EnvValue, [EnvironmentVariableTarget]::Machine)
 
 
-. ([scriptblock]::Create((Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DavidWuibaille/Repository/main/Function/tanium.ps1" -UseBasicParsing).Content))
+
+
 $url = "https://nas.wuibaille.fr/DML/Chrome/googlechromestandaloneenterprise64.msi"
 $destination = "C:\Windows\Temp\GoogleChromeStandaloneEnterprise64.msi"
 $appName = "Google Chrome"
 TaniumDownloadAndInstallMsi -Url $url -Destination $destination -AppName $appName
 
 
-
-# Log completion of the script
-Log-Message "Script execution completed"
-
-
-
-# Set the environment variable POSTYPE persistently for the System
-[Environment]::SetEnvironmentVariable("POSTYPE", $EnvValue, [EnvironmentVariableTarget]::Machine)
-
-
-# Define source and destination paths
-$sourcePath = "C:\_T"
-$destinationPath = "C:\BackupT"
-
-# Log the start of the copy process
-Log-Message "Starting copy from $sourcePath to $destinationPath"
-
-try {
-    # Check if the destination directory exists, if not, create it
-    if (-not (Test-Path -Path $destinationPath)) {
-        New-Item -Path $destinationPath -ItemType Directory
-        Log-Message "Created directory $destinationPath"
-    }
-
-    # Copy all content from source to destination
-    Copy-Item -Path $sourcePath\* -Destination $destinationPath -Recurse -Force
-    Log-Message "Copy successful from $sourcePath to $destinationPath"
-} catch {
-    Log-Message "Copy failed: $_"
-}
-
-# Log completion of the copy process
-Log-Message "Copy process completed"
-
-
 Log-Message "Script ended."
 
 
-
+$webserviceUrl = "http://epm2024.monlab.lan:12176/GetName"
+$computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl $webserviceUrl
+$computerName = $computerInfo.Computername
+$postype = $computerInfo.Postype
+$setkeyboard = $computerInfo.SetKeyboard
+Log-Message "API : $computerName"  
+Log-Message "API : $postype"   
+Log-Message "API : $setkeyboard"   
