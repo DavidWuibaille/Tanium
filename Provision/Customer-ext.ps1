@@ -24,5 +24,5 @@ Log-Message "API : $setkeyboard"
 # Set the environment variable POSTYPE persistently for the System
 [Environment]::SetEnvironmentVariable("POSTYPE",  $postype, [EnvironmentVariableTarget]::Machine)
 
-
+InstallDrivers
 SetDns -DnsServers @("192.168.0.240", "192.168.0.3")
