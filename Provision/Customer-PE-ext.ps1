@@ -1,4 +1,4 @@
-
+. ([scriptblock]::Create((Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DavidWuibaille/Repository/main/Function/tanium.ps1" -UseBasicParsing).Content))
 Import-Module C:\_T\TaniumOSD
 Import-Module C:\_T\TaniumClient
 
