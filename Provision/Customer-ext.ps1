@@ -49,27 +49,13 @@ try {
 
 
 
-Set-OSDProgressDisplay -Message "Apps chrome Download"
-Log-Message "Apps chrome Download from $url"
+. ([scriptblock]::Create((Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DavidWuibaille/Repository/main/Function/tanium.ps1" -UseBasicParsing).Content))
 $url = "https://nas.wuibaille.fr/DML/Chrome/googlechromestandaloneenterprise64.msi"
 $destination = "C:\Windows\Temp\GoogleChromeStandaloneEnterprise64.msi"
-# Download the file
-try {
-    Invoke-WebRequest -Uri $url -OutFile $destination
-    Log-Message "Download successful"
-} catch {
-    Log-Message "Download failed: $_"
-    exit 1
-}
-Set-OSDProgressDisplay -Message "Apps chrome Install"
-Log-Message "Apps chrome Install $destination"
-try {
-    Start-Process "msiexec.exe" -ArgumentList "/i $destination /quiet /norestart" -Wait -NoNewWindow
-    Log-Message "Installation successful"
-} catch {
-    Log-Message "Installation failed: $_"
-    exit 1
-}
+$appName = "Google Chrome"
+TaniumDownloadAndInstallMsi -Url $url -Destination $destination -AppName $appName
+
+
 
 # Log completion of the script
 Log-Message "Script execution completed"
