@@ -53,3 +53,4 @@ Set-OSDProgressDisplay -Message "END"
 $info = "$computername - END"
 Invoke-RestMethod -Uri "http://epm2024.monlab.lan:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
 
+Restart-Computer -Force
