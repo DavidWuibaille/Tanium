@@ -30,3 +30,7 @@ InstallDrivers
 
 Set-OSDProgressDisplay -Message "Domain"
 SetDns -DnsServers @("192.168.0.240", "192.168.0.3")
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DavidWuibaille/Tanium/main/Provision/joindomain.ps1" -UseBasicParsing).Content
+
+
+Set-OSDProgressDisplay -Message "End"
