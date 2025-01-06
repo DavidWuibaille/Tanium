@@ -19,10 +19,10 @@ Invoke-RestMethod -Uri "http://epm2024.monlab.lan:12176/SaveInfo?macaddress=$mac
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DavidWuibaille/Packaging/main/DML/7zip.ps1" -UseBasicParsing).Content
 
 # Installation de Adobe Acrobat DC
-Set-OSDProgressDisplay -Message "Installation Acrobat DC"
-$info = "$computername - Installation Acrobat DC"
-Invoke-RestMethod -Uri "http://epm2024.monlab.lan:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DavidWuibaille/Packaging/main/DML/acrobatdc.ps1" -UseBasicParsing).Content
+# Set-OSDProgressDisplay -Message "Installation Acrobat DC"
+# $info = "$computername - Installation Acrobat DC"
+# Invoke-RestMethod -Uri "http://epm2024.monlab.lan:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
+# Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DavidWuibaille/Packaging/main/DML/acrobatdc.ps1" -UseBasicParsing).Content
 
 Set-OSDProgressDisplay -Message "Web Service"
 $computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://epm2024.monlab.lan:12176/GetName"
