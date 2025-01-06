@@ -2,6 +2,9 @@
 Import-Module C:\_T\TaniumOSD
 Import-Module C:\_T\TaniumClient
 
+$macaddress = Get-WmiObject Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -eq 2 } | Select-Object -ExpandProperty MACAddress
+$macaddress = $macAddresses.replace(":", "").replace("-", "") # Nettoyer le format MAC
+
 $computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://epm2024.monlab.lan:12176/GetName"
 $computerName = $computerInfo.Computername
 $postype      = $computerInfo.Postype
@@ -9,6 +12,10 @@ $setkeyboard  = $computerInfo.SetKeyboard
 Log-Message "APIpe : $computerName"  
 Log-Message "APIpe : $postype"   
 Log-Message "APIpe : $setkeyboard" 
+
+
+$info = "WinPE - Web Service $computerName $postype $setkeyboard"
+Invoke-RestMethod -Uri "http://epm2024.monlab.lan:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
 
 # Log available drives
 $availableDrives = Get-PSDrive -PSProvider FileSystem | Select-Object -ExpandProperty Root
