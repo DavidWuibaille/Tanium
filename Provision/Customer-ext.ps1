@@ -7,7 +7,7 @@ $computername = (Get-ComputerInfo).CsName
 Set-OSDProgressDisplay -Message "Applications"
 
 # Installation de Google Chrome
-$info = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - $(Get-ComputerInfo).CsName - Installation Google Chrome"
+$info = "$computername - Installation Google Chrome"
 Invoke-RestMethod -Uri "http://epm2024.monlab.lan:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DavidWuibaille/Packaging/main/DML/chrome.ps1" -UseBasicParsing).Content
 
