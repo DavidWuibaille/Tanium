@@ -15,3 +15,8 @@ Get Computer Name and Last Logged In User and Running Applications from all mach
 Get Computer Name and Last Logged In User and Running Service from all machines
 Get Computer Name and Last Logged In User and Stopped Service from all machines
 Get Computer Name and Last Logged In User and Installed Applications from all machines
+
+
+
+Get Tanium Client Settings from all machines
+Get Sensor Status from all machines
