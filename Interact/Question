@@ -20,3 +20,9 @@ Get Computer Name and Last Logged In User and Installed Applications from all ma
 
 Get Tanium Client Settings from all machines
 Get Sensor Status from all machines
+
+
+
+Get Endpoint Configuration - Tools Status Details from all machines
+
+Get Content Created By from all users with User Name equals "<nom_utilisateur>"
