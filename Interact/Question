@@ -26,3 +26,6 @@ Get Sensor Status from all machines
 Get Endpoint Configuration - Tools Status Details from all machines
 
 Get Content Created By from all users with User Name equals "<nom_utilisateur>"
+
+
+Get Computer Name and In Subnet[192.168.0.1/24] from all machines
