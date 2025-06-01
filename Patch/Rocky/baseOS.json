@@ -1,0 +1,12 @@
+{
+  "name": "Rocky-9 BaseOS",
+  "type": "RPM",
+  "baseUrl": "https://download.rockylinux.org/pub/rocky/9/BaseOS/$basearch/os/",
+  "gpgCheck":     true,
+  "repoGpgCheck": true,
+  "enabled":      true,
+  "autoSync":     true,
+  "gpgKeys": [
+    "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9"
+  ]
+}
