@@ -5,7 +5,7 @@ Import-Module C:\_T\TaniumClient
 $macaddress = Get-WmiObject Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -eq 2 } | Select-Object -ExpandProperty MACAddress
 $macaddress = $macaddress.Replace(":", "-")
 
-$computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://epm2024.monlab.lan:12176/GetName"
+$computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://192.168.50.87:12176/GetName"
 $computerName = $computerInfo.Computername
 $postype      = $computerInfo.Postype
 $setkeyboard  = $computerInfo.SetKeyboard
