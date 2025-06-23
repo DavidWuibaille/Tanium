@@ -4,7 +4,9 @@ Import-Module C:\_T\TaniumClient
 $macaddress = (Get-NetAdapter | Where-Object Status -eq 'Up').MacAddress -replace ":", ""
 $computernameGet = (Get-ComputerInfo).CsName
 
-
+# disabled windows update
+New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Force | Out-Null
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "NoAutoUpdate" -Value 1 -Type DWord
 
 # Installation de Google Chrome
 Set-OSDProgressDisplay -Message "Installation Google Chrome"
