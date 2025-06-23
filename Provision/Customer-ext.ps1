@@ -41,9 +41,9 @@ $computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://InstallIvantiAgen
 $computerName = $computerInfo.Computername
 $postype      = $computerInfo.Postype
 $setkeyboard  = $computerInfo.SetKeyboard
-Log-Message "API : $computerName"  
-Log-Message "API : $postype"   
-Log-Message "API : $setkeyboard" 
+Write-Log "API : $computerName"  
+Write-Log "API : $postype"   
+Write-Log "API : $setkeyboard" 
 $info = "$computernameGet - Web Service $computerName $postype $setkeyboard"
 Invoke-RestMethod -Uri "http://192.168.50.10:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
 [Environment]::SetEnvironmentVariable("POSTYPE",  $postype, [EnvironmentVariableTarget]::Machine)
