@@ -1,25 +1,54 @@
-. ([scriptblock]::Create((Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DavidWuibaille/Repository/main/Function/tanium.ps1" -UseBasicParsing).Content))
+# Logging function
+function Write-Log {
+    param([string]$Message)
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    "$timestamp $Message" | Out-File -FilePath "C:\Windows\Temp\provision.log" -Append -Encoding UTF8
+}
+
 Import-Module C:\_T\TaniumOSD
 Import-Module C:\_T\TaniumClient
 
 $macaddress = Get-WmiObject Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -eq 2 } | Select-Object -ExpandProperty MACAddress
-$macaddress = $macaddress.Replace(":", "-")
+$macaddress = $macaddress.Replace(":", "")
+$macaddress = $macaddress.Replace("-", "")
 
-$computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://192.168.50.10:12176/GetName"
+# Build request URL
+$info = "WinPE - Web Service Call API"
+Invoke-RestMethod -Uri "http://192.168.50.10:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
+
+# Call API and get info
+$urlws = "http://192.168.50.10:12176/GetName?macaddress=$macaddress"
+Write-Log $urlws
+try {
+    $response = Invoke-RestMethod -Uri $urlws
+    if ($response.Computername) {
+        $computerInfo = @{
+            Computername = $response.Computername
+            Postype      = $response.postype
+            SetKeyboard  = $response.setkeyboard
+        }
+    } else {
+
+        $computerInfo = $null
+    }
+} catch {
+    $computerInfo = $null
+}
+
+$computerInfo
 $computerName = $computerInfo.Computername
 $postype      = $computerInfo.Postype
 $setkeyboard  = $computerInfo.SetKeyboard
-Log-Message "APIpe : $computerName"  
-Log-Message "APIpe : $postype"   
-Log-Message "APIpe : $setkeyboard" 
-
+Write-Log "APIpe : $computerName"  
+Write-Log "APIpe : $postype"   
+Write-Log "APIpe : $setkeyboard" 
 
 $info = "WinPE - Web Service $computerName $postype $setkeyboard"
-Invoke-RestMethod -Uri "http://epm2024.monlab.lan:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
+Invoke-RestMethod -Uri "http://192.168.50.10:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
 
 # Log available drives
 $availableDrives = Get-PSDrive -PSProvider FileSystem | Select-Object -ExpandProperty Root
-Log-Message "Available Drives: $($availableDrives -join ', ')"
+Write-Log "Available Drives: $($availableDrives -join ', ')"
 
 # Define paths to check for unattend.xml
 $unattendPaths = @(
@@ -32,11 +61,11 @@ foreach ($drive in $availableDrives) {
     foreach ($relativePath in $unattendPaths) {
         # Construct the full path to the unattend.xml file in the current drive
         $xmlFilePath = Join-Path -Path $drive -ChildPath $relativePath
-        Log-Message "Checking for unattend.xml at $xmlFilePath"
+        Write-Log "Checking for unattend.xml at $xmlFilePath"
 
         # Ensure the XML file exists before proceeding
         if (Test-Path $xmlFilePath) {
-            Log-Message "unattend.xml file found at $xmlFilePath."
+            Write-Log "unattend.xml file found at $xmlFilePath."
 
             try {
                 # Load the XML file
@@ -52,17 +81,17 @@ foreach ($drive in $availableDrives) {
                     $computerNameNode.InnerText = $computerName
                     # Save the modified XML file
                     $xmlDoc.Save($xmlFilePath)
-                    Log-Message "The ComputerName in unattend.xml has been updated to $($response.Computername)"
+                    Write-Log "The ComputerName in unattend.xml has been updated to $($response.Computername)"
                 } else {
-                    Log-Message "No ComputerName element found in XML."
+                    Write-Log "No ComputerName element found in XML."
                 }
             } catch {
-                Log-Message "Error processing unattend.xml at $xmlFilePath - $_"
+                Write-Log "Error processing unattend.xml at $xmlFilePath - $_"
             }
         } else {
-            Log-Message "The unattend.xml file does not exist at $xmlFilePath."
+            Write-Log "The unattend.xml file does not exist at $xmlFilePath."
         }
     }
 }
 
-Log-Message "Script completed."
+Write-Log "Script completed."
