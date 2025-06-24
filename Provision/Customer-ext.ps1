@@ -1,6 +1,8 @@
 Import-Module C:\_T\TaniumOSD
 Import-Module C:\_T\TaniumClient
-$macaddress      = (Get-NetAdapter | Where-Object Status -eq 'Up').MacAddress -replace ":", ""
+$macaddress      = (Get-NetAdapter | Where-Object Status -eq 'Up').MacAddress
+$macaddress = $macaddress.Replace(":", "")
+$macaddress = $macaddress.Replace("-", "")
 $computernameGet = (Get-ComputerInfo).CsName
 
 # Logging function
@@ -42,7 +44,7 @@ Start-Process -FilePath "cmd.exe" -ArgumentList "/c $installCmd" -Wait -NoNewWin
 
 # SetPostype
 Set-OSDProgressDisplay -Message "POSTYPE"
-$computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://192.168.50.10:12176/GetName"
+$computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://192.168.50.10:12176/GetName?macaddress=$macaddress"
 $computerName = $computerInfo.Computername
 $postype      = $computerInfo.Postype
 $setkeyboard  = $computerInfo.SetKeyboard
@@ -52,9 +54,6 @@ Write-Log "API : $setkeyboard"
 $info = "$computernameGet - Web Service $computerName $postype $setkeyboard"
 Invoke-RestMethod -Uri "http://192.168.50.10:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
 [Environment]::SetEnvironmentVariable("POSTYPE",  $postype, [EnvironmentVariableTarget]::Machine)
-Write-Log "APIpe : $computerName"  
-Write-Log "APIpe : $postype"   
-Write-Log "APIpe : $setkeyboard" 
 
 Set-OSDProgressDisplay -Message "END"
 $info = "$computernameGet - END"
