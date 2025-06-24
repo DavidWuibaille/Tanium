@@ -42,14 +42,34 @@ Start-Process -FilePath "cmd.exe" -ArgumentList "/c $installCmd" -Wait -NoNewWin
 
 # SetPostype
 Set-OSDProgressDisplay -Message "POSTYPE"
-$computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://192.168.50.10:12176/GetName?macaddress=$macaddress"
+
+# Call API and get info
+$urlws = "http://192.168.50.10:12176/GetName?macaddress=$macaddress"
+Write-Log $urlws
+try {
+    $response = Invoke-RestMethod -Uri $urlws
+    if ($response.Computername) {
+        $computerInfo = @{
+            Computername = $response.Computername
+            Postype      = $response.postype
+            SetKeyboard  = $response.setkeyboard
+        }
+    } else {
+
+        $computerInfo = $null
+    }
+} catch {
+    $computerInfo = $null
+}
+
 $computerName = $computerInfo.Computername
 $postype      = $computerInfo.Postype
 $setkeyboard  = $computerInfo.SetKeyboard
 Write-Log "API : $computerName"  
 Write-Log "API : $postype"   
 Write-Log "API : $setkeyboard" 
-$info = "$computernameGet - Web Service $computerName $postype $setkeyboard"
+
+$info = "Windows - Web Service $computerName $postype $setkeyboard"
 Invoke-RestMethod -Uri "http://192.168.50.10:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
 [Environment]::SetEnvironmentVariable("POSTYPE",  $postype, [EnvironmentVariableTarget]::Machine)
 
