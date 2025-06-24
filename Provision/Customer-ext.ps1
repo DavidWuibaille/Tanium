@@ -17,9 +17,6 @@ Set-OSDProgressDisplay -Message "Cofigure Windows Update"
 New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Force | Out-Null
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "NoAutoUpdate" -Value 1 -Type DWord
 
-$macaddress = Get-WmiObject Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -eq 2 } | Select-Object -ExpandProperty MACAddress
-$macaddress = $macaddress.Replace(":", "-")
-
 # Installation de Google Chrome
 Set-OSDProgressDisplay -Message "Installation Google Chrome"
 $info = "$computernameGet - Installation Google Chrome"
