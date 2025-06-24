@@ -42,7 +42,6 @@ Start-Process -FilePath "cmd.exe" -ArgumentList "/c $installCmd" -Wait -NoNewWin
 
 # SetPostype
 Set-OSDProgressDisplay -Message "POSTYPE"
-$computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://InstallIvantiAgent.ps1:12176/GetName"
 $computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://192.168.50.10:12176/GetName"
 $computerName = $computerInfo.Computername
 $postype      = $computerInfo.Postype
@@ -62,53 +61,4 @@ $info = "$computernameGet - END"
 $info = "WinPE - Web Service $computerName $postype $setkeyboard"
 Invoke-RestMethod -Uri "http://192.168.50.10:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
 
-Restart-Computer -Force
-# Log available drives
-$availableDrives = Get-PSDrive -PSProvider FileSystem | Select-Object -ExpandProperty Root
-Write-Log "Available Drives: $($availableDrives -join ', ')"
 
-# Define paths to check for unattend.xml
-$unattendPaths = @(
-    "Windows\Panther\unattend.xml",
-    "_T\unattend.xml",
-    "Windows\Panther\Unattend\unattend.xml"
-)
-
-foreach ($drive in $availableDrives) {
-    foreach ($relativePath in $unattendPaths) {
-        # Construct the full path to the unattend.xml file in the current drive
-        $xmlFilePath = Join-Path -Path $drive -ChildPath $relativePath
-        Write-Log "Checking for unattend.xml at $xmlFilePath"
-
-        # Ensure the XML file exists before proceeding
-        if (Test-Path $xmlFilePath) {
-            Write-Log "unattend.xml file found at $xmlFilePath."
-
-            try {
-                # Load the XML file
-                [xml]$xmlDoc = Get-Content $xmlFilePath
-
-                # Define the namespace manager
-                $ns = New-Object System.Xml.XmlNamespaceManager($xmlDoc.NameTable)
-                $ns.AddNamespace("ns", "urn:schemas-microsoft-com:unattend")
-
-                # Attempt to find and modify the ComputerName element
-                $computerNameNode = $xmlDoc.SelectSingleNode("//ns:settings[@pass='specialize']/ns:component/ns:ComputerName", $ns)
-                if ($computerNameNode -ne $null) {
-                    $computerNameNode.InnerText = $computerName
-                    # Save the modified XML file
-                    $xmlDoc.Save($xmlFilePath)
-                    Write-Log "The ComputerName in unattend.xml has been updated to $($response.Computername)"
-                } else {
-                    Write-Log "No ComputerName element found in XML."Add commentMore actions
-                }
-            } catch {
-                Write-Log "Error processing unattend.xml at $xmlFilePath - $_"
-            }
-        } else {
-            Write-Log "The unattend.xml file does not exist at $xmlFilePath."
-        }
-    }
-}
-
-Write-Log "Script completed."
