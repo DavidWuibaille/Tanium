@@ -11,7 +11,32 @@ Import-Module C:\_T\TaniumClient
 $macaddress = Get-WmiObject Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -eq 2 } | Select-Object -ExpandProperty MACAddress
 $macaddress = $macaddress.Replace(":", "-")
 
-$computerInfo = Get-ComputerInfoFromAPI -WebServiceUrl "http://192.168.50.10:12176/GetName"
+# Get active MAC address (network up)
+$macAddresses = Get-WmiObject Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -eq 2 } | Select-Object -ExpandProperty MACAddress
+$macAddresses = $macAddresses -replace "[:\-]", "" # Remove : and -
+
+# Build request URL
+$WebServiceUrl = "http://192.168.50.10:12176/GetName"
+$urlws = "$WebServiceUrl?macaddress=$macAddresses"
+
+# Call API and get info
+try {
+    $response = Invoke-RestMethod -Uri $urlws
+    if ($response.Computername) {
+        $computerInfo = @{
+            Computername = $response.Computername
+            Postype      = $response.postype
+            SetKeyboard  = $response.setkeyboard
+        }
+    } else {
+
+        $computerInfo = $null
+    }
+} catch {
+    $computerInfo = $null
+}
+
+
 $computerName = $computerInfo.Computername
 $postype      = $computerInfo.Postype
 $setkeyboard  = $computerInfo.SetKeyboard
