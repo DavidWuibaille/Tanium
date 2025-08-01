@@ -40,10 +40,6 @@ Write-Log "APIpe : $computerName"
 Write-Log "APIpe : $postype"   
 Write-Log "APIpe : $setkeyboard" 
 
-# --- Partie log/info (désactivé car pas géré par ton PHP)
-# $info = "WinPE - Web Service $computerName $postype $setkeyboard"
-# Invoke-RestMethod -Uri "http://192.168.50.10:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
-
 # Log available drives
 $availableDrives = Get-PSDrive -PSProvider FileSystem | Select-Object -ExpandProperty Root
 Write-Log "Available Drives: $($availableDrives -join ', ')"
