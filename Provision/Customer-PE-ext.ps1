@@ -12,27 +12,24 @@ $macaddress = Get-WmiObject Win32_NetworkAdapter | Where-Object { $_.NetConnecti
 $macaddress = $macaddress.Replace(":", "")
 $macaddress = $macaddress.Replace("-", "")
 
-# Build request URL
-$info = "WinPE - Web Service Call API"
-Invoke-RestMethod -Uri "http://192.168.50.10:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
-
-# Call API and get info
-$urlws = "http://192.168.50.10:12176/GetName?macaddress=$macaddress"
+# Appel du WS PHP pour récupérer l'info machine
+$urlws = "https://nas.wuibaille.fr/WS/getcomputer.php?mac=$macaddress"
 Write-Log $urlws
+
 try {
-    $response = Invoke-RestMethod -Uri $urlws
-    if ($response.Computername) {
+    $response = Invoke-RestMethod -Uri $urlws -Method Get
+    if ($response.computerName) {
         $computerInfo = @{
-            Computername = $response.Computername
-            Postype      = $response.postype
-            SetKeyboard  = $response.setkeyboard
+            Computername = $response.computerName
+            Postype      = $response.posType
+            SetKeyboard  = ""   # Non retourné par ton PHP, à adapter si besoin
         }
     } else {
-
         $computerInfo = $null
     }
 } catch {
     $computerInfo = $null
+    Write-Log "Erreur appel API PHP: $_"
 }
 
 $computerInfo
@@ -43,8 +40,9 @@ Write-Log "APIpe : $computerName"
 Write-Log "APIpe : $postype"   
 Write-Log "APIpe : $setkeyboard" 
 
-$info = "WinPE - Web Service $computerName $postype $setkeyboard"
-Invoke-RestMethod -Uri "http://192.168.50.10:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
+# --- Partie log/info (désactivé car pas géré par ton PHP)
+# $info = "WinPE - Web Service $computerName $postype $setkeyboard"
+# Invoke-RestMethod -Uri "http://192.168.50.10:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
 
 # Log available drives
 $availableDrives = Get-PSDrive -PSProvider FileSystem | Select-Object -ExpandProperty Root
@@ -81,7 +79,7 @@ foreach ($drive in $availableDrives) {
                     $computerNameNode.InnerText = $computerName
                     # Save the modified XML file
                     $xmlDoc.Save($xmlFilePath)
-                    Write-Log "The ComputerName in unattend.xml has been updated to $($response.Computername)"
+                    Write-Log "The ComputerName in unattend.xml has been updated to $computerName"
                 } else {
                     Write-Log "No ComputerName element found in XML."
                 }
