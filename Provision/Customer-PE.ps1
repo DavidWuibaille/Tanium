@@ -1,5 +1,5 @@
 # Définir l'URL du fichier brut sur GitHub
-$url = "https://raw.githubusercontent.com/DavidWuibaille/Tanium/main/Provision/Customer-PE-ext.ps1"
+$url = "https://nas.wuibaille.fr/WS/provision/Customer-PE.ps1"
 
 # Définir le chemin local pour sauvegarder le fichier à la racine de X:
 $localPath = "X:\Customer-PE-ext.ps1"
@@ -23,3 +23,4 @@ Try {
 } Catch {
     Write-Host "Erreur pendant l'exécution du script : $($_.Exception.Message)" -ForegroundColor Red
 }
+
