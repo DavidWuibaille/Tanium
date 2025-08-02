@@ -3,6 +3,7 @@ function Write-Log {
     param([string]$Message)
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     "$timestamp $Message" | Out-File -FilePath "C:\Windows\Temp\provision.log" -Append -Encoding UTF8
+    Write-Host $Message
 }
 
 Import-Module C:\_T\TaniumOSD
@@ -12,7 +13,7 @@ $macaddress = Get-WmiObject Win32_NetworkAdapter | Where-Object { $_.NetConnecti
 $macaddress = $macaddress.Replace(":", "")
 $macaddress = $macaddress.Replace("-", "")
 
-# Appel du WS PHP pour récupérer l'info machine
+# Appel du WS PHP pour récupérer l'info machine (API doit renvoyer aussi keyboard/language)
 $urlws = "https://nas.wuibaille.fr/WS/getcomputer.php?mac=$macaddress"
 Write-Log $urlws
 
@@ -22,7 +23,8 @@ try {
         $computerInfo = @{
             Computername = $response.computerName
             Postype      = $response.posType
-            SetKeyboard  = ""   # Non retourné par ton PHP, à adapter si besoin
+            Keyboard     = $response.keyboard
+            Language     = $response.language
         }
     } else {
         $computerInfo = $null
@@ -35,10 +37,13 @@ try {
 $computerInfo
 $computerName = $computerInfo.Computername
 $postype      = $computerInfo.Postype
-$setkeyboard  = $computerInfo.SetKeyboard
+$setkeyboard  = $computerInfo.Keyboard
+$setlanguage  = $computerInfo.Language
+
 Write-Log "APIpe : $computerName"  
 Write-Log "APIpe : $postype"   
-Write-Log "APIpe : $setkeyboard" 
+Write-Log "APIpe : $setkeyboard"
+Write-Log "APIpe : $setlanguage"
 
 # Log available drives
 $availableDrives = Get-PSDrive -PSProvider FileSystem | Select-Object -ExpandProperty Root
@@ -53,32 +58,45 @@ $unattendPaths = @(
 
 foreach ($drive in $availableDrives) {
     foreach ($relativePath in $unattendPaths) {
-        # Construct the full path to the unattend.xml file in the current drive
         $xmlFilePath = Join-Path -Path $drive -ChildPath $relativePath
         Write-Log "Checking for unattend.xml at $xmlFilePath"
 
-        # Ensure the XML file exists before proceeding
         if (Test-Path $xmlFilePath) {
             Write-Log "unattend.xml file found at $xmlFilePath."
-
             try {
-                # Load the XML file
                 [xml]$xmlDoc = Get-Content $xmlFilePath
 
-                # Define the namespace manager
                 $ns = New-Object System.Xml.XmlNamespaceManager($xmlDoc.NameTable)
                 $ns.AddNamespace("ns", "urn:schemas-microsoft-com:unattend")
 
-                # Attempt to find and modify the ComputerName element
+                # Change ComputerName
                 $computerNameNode = $xmlDoc.SelectSingleNode("//ns:settings[@pass='specialize']/ns:component/ns:ComputerName", $ns)
                 if ($computerNameNode -ne $null) {
                     $computerNameNode.InnerText = $computerName
-                    # Save the modified XML file
-                    $xmlDoc.Save($xmlFilePath)
                     Write-Log "The ComputerName in unattend.xml has been updated to $computerName"
                 } else {
                     Write-Log "No ComputerName element found in XML."
                 }
+
+                # Exemple : changer KeyboardLayout (InputLocale) si besoin
+                if ($setkeyboard) {
+                    $keyboardNode = $xmlDoc.SelectSingleNode("//ns:settings/ns:component/ns:InputLocale", $ns)
+                    if ($keyboardNode -ne $null) {
+                        $keyboardNode.InnerText = $setkeyboard
+                        Write-Log "Keyboard/InputLocale updated to $setkeyboard"
+                    }
+                }
+
+                # Exemple : changer UILanguage si besoin
+                if ($setlanguage) {
+                    $langNode = $xmlDoc.SelectSingleNode("//ns:settings/ns:component/ns:UILanguage", $ns)
+                    if ($langNode -ne $null) {
+                        $langNode.InnerText = $setlanguage
+                        Write-Log "UILanguage updated to $setlanguage"
+                    }
+                }
+
+                $xmlDoc.Save($xmlFilePath)
             } catch {
                 Write-Log "Error processing unattend.xml at $xmlFilePath - $_"
             }
