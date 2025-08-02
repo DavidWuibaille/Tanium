@@ -87,15 +87,6 @@ foreach ($drive in $availableDrives) {
                     }
                 }
 
-                # Exemple : changer UILanguage si besoin
-                if ($setlanguage) {
-                    $langNode = $xmlDoc.SelectSingleNode("//ns:settings/ns:component/ns:UILanguage", $ns)
-                    if ($langNode -ne $null) {
-                        $langNode.InnerText = $setlanguage
-                        Write-Log "UILanguage updated to $setlanguage"
-                    }
-                }
-
                 $xmlDoc.Save($xmlFilePath)
             } catch {
                 Write-Log "Error processing unattend.xml at $xmlFilePath - $_"
