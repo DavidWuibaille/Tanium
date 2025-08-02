@@ -13,7 +13,7 @@ function Write-Log {
 }
 
 # disabled windows update
-Set-OSDProgressDisplay -Message "Cofigure Windows Update"
+Set-OSDProgressDisplay -Message "Configure Windows Update"
 New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Force | Out-Null
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "NoAutoUpdate" -Value 1 -Type DWord
 
@@ -40,7 +40,7 @@ Start-Process -FilePath "cmd.exe" -ArgumentList "/c $installCmd" -Wait -NoNewWin
 # SetPostype
 Set-OSDProgressDisplay -Message "POSTYPE"
 
-# Call API and get info
+# Call API and get info (adapté pour renvoyer keyboard et language)
 $urlws = "http://192.168.50.10:12176/GetName?macaddress=$macaddress"
 Write-Log $urlws
 try {
@@ -49,10 +49,10 @@ try {
         $computerInfo = @{
             Computername = $response.Computername
             Postype      = $response.postype
-            SetKeyboard  = $response.setkeyboard
+            SetKeyboard  = $response.keyboard
+            SetLanguage  = $response.language
         }
     } else {
-
         $computerInfo = $null
     }
 } catch {
@@ -62,17 +62,20 @@ try {
 $computerName = $computerInfo.Computername
 $postype      = $computerInfo.Postype
 $setkeyboard  = $computerInfo.SetKeyboard
-Write-Log "API : $computerName"  
-Write-Log "API : $postype"   
-Write-Log "API : $setkeyboard" 
+$setlanguage  = $computerInfo.SetLanguage
 
-$info = "Windows - Web Service $computerName $postype $setkeyboard"
+Write-Log "API : $computerName"
+Write-Log "API : $postype"
+Write-Log "API : $setkeyboard"
+Write-Log "API : $setlanguage"
+
+$info = "Windows - Web Service $computerName $postype $setkeyboard $setlanguage"
 Invoke-RestMethod -Uri "http://192.168.50.10:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
 [Environment]::SetEnvironmentVariable("POSTYPE",  $postype, [EnvironmentVariableTarget]::Machine)
+[Environment]::SetEnvironmentVariable("KEYBOARD", $setkeyboard, [EnvironmentVariableTarget]::Machine)
+[Environment]::SetEnvironmentVariable("LANGUAGE", $setlanguage, [EnvironmentVariableTarget]::Machine)
 
 Set-OSDProgressDisplay -Message "END"
 $info = "$computernameGet - END"
-$info = "WinPE - Web Service $computerName $postype $setkeyboard"
+$info = "WinPE - Web Service $computerName $postype $setkeyboard $setlanguage"
 Invoke-RestMethod -Uri "http://192.168.50.10:12176/SaveInfo?macaddress=$macaddress&info=$info" -Method Post
-
-
